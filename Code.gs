@@ -179,7 +179,8 @@ function addData(payload) {
       payload.namaMahasiswa,
       payload.section,
       payload.tanggalKejadian,
-      payload.keterangan
+      payload.keterangan,
+      payload.prodi // Ditambahkan di akhir (Kolom I)
     ]);
     
     return { success: true, message: 'Data berhasil disimpan.' };
