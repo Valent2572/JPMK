@@ -65,7 +65,9 @@ function login(username, password) {
 function getStudentName(nim) {
   try {
     const nimStr = nim.toString().trim();
-    const yearMatch = nimStr.match(/^(\d{4})/);
+    // Hilangkan tanda strip agar 2023-6-050 sama dengan 20236050
+    const cleanNim = nimStr.replace(/-/g, '');
+    const yearMatch = cleanNim.match(/^(\d{4})/);
     let targetTk = 1; // Default Tk 1
     
     if (yearMatch) {
@@ -94,7 +96,8 @@ function getStudentName(nim) {
       const data = sheet.getDataRange().getValues();
       // Kolom A (0): No Coin, Kolom B (1): Nama Lengkap, Kolom C (2): Nim
       for (let r = 1; r < data.length; r++) {
-        if (data[r][2] && data[r][2].toString().trim() === nimStr) {
+        let sheetNim = data[r][2] ? data[r][2].toString().trim().replace(/-/g, '') : "";
+        if (sheetNim === cleanNim && sheetNim !== "") {
           return data[r][1].toString().trim(); // Return Nama Lengkap
         }
       }

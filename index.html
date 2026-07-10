@@ -56,9 +56,24 @@
       <div class="w-full md:w-2/3 bg-white p-6 rounded-xl shadow-md flex flex-col">
         <h2 class="text-lg font-bold mb-4 border-b pb-2">Cari Riwayat Mahasiswa</h2>
         
-        <form onsubmit="handleSearch(event)" class="flex gap-2 mb-6">
-          <input type="text" id="searchNim" placeholder="Masukkan NIM Mahasiswa..." class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium">Cari</button>
+        <form onsubmit="handleSearch(event)" class="mb-6">
+          <label class="block text-sm font-semibold mb-2 text-gray-700">Pilih & Masukkan NIM</label>
+          <div class="flex gap-2 items-center">
+            <select id="searchNimYear" class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+            </select>
+            <span class="font-bold text-gray-500">-</span>
+            <select id="searchNimCode" class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
+              <option value="6">6 (TRMK)</option>
+              <option value="2">2 (TMK)</option>
+            </select>
+            <span class="font-bold text-gray-500">-</span>
+            <input type="text" id="searchNimDigits" placeholder="Contoh: 050" maxlength="3" pattern="\d{3}" class="flex-grow w-24 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium">Cari</button>
+          </div>
         </form>
 
         <div class="overflow-x-auto flex-grow">
@@ -232,13 +247,21 @@
     // === PENCARIAN & RIWAYAT ===
     function handleSearch(e) {
       if(e) e.preventDefault();
-      const nim = document.getElementById('searchNim').value.trim();
-      if (!nim) return alert("NIM tidak boleh kosong!");
+      const year = document.getElementById('searchNimYear').value;
+      const code = document.getElementById('searchNimCode').value;
+      const digits = document.getElementById('searchNimDigits').value.trim();
+      
+      if (digits.length !== 3) return alert("3 digit terakhir NIM harus diisi tepat 3 angka!");
+
+      const nim = `${year}-${code}-${digits}`;
+      const sectionName = code === '6' ? 'TRMK' : 'TMK';
 
       currentNim = nim;
       currentOffset = 0;
       historyData = [];
+      
       document.getElementById('inputNim').value = nim; 
+      document.getElementById('inputSection').value = sectionName; // Auto-fill section
       document.getElementById('btnSubmitData').disabled = false; 
       
       fetchHistoryData();
