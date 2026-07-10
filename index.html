@@ -8,6 +8,8 @@
   <!-- Menambahkan Flatpickr untuk Input Tanggal -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <!-- Menambahkan SweetAlert2 untuk Popup Alert -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
@@ -230,7 +232,7 @@
         localStorage.setItem('nama_dosen', currentUser);
         showDashboard();
       } else {
-        alert(res.message);
+        Swal.fire({ icon: 'error', title: 'Login Gagal', text: res.message });
       }
     }
 
@@ -256,7 +258,9 @@
       const code = document.getElementById('searchNimCode').value;
       const digits = document.getElementById('searchNimDigits').value.trim();
       
-      if (digits.length !== 3) return alert("3 digit terakhir NIM harus diisi tepat 3 angka!");
+      if (digits.length !== 3) {
+        return Swal.fire({ icon: 'warning', title: 'Perhatian', text: '3 digit terakhir NIM harus diisi tepat 3 angka!' });
+      }
 
       const nim = `${year}-${code}-${digits}`;
       const sectionName = code === '6' ? 'TRMK' : 'TMK';
@@ -309,7 +313,7 @@
             `<tr><td colspan="7" class="text-center p-4 text-gray-500">Belum ada riwayat untuk NIM ${currentNim}</td></tr>`;
         }
       } else {
-        alert(res.message);
+        Swal.fire({ icon: 'error', title: 'Oops...', text: res.message });
       }
     }
 
@@ -355,7 +359,7 @@
       };
 
       if(!payload.kategori || !payload.tanggalKejadian) {
-        return alert("Harap lengkapi semua field yang wajib!");
+        return Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Harap lengkapi semua field yang wajib!' });
       }
 
       showLoading();
@@ -363,7 +367,7 @@
       hideLoading();
 
       if (res.success) {
-        alert('Data berhasil ditambahkan!');
+        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data berhasil ditambahkan!', timer: 2000, showConfirmButton: false });
         document.getElementById('inputKategori').value = "";
         document.getElementById('inputJam').value = "";
         document.getElementById('inputTanggalKejadian').value = "";
@@ -372,7 +376,7 @@
         currentOffset = 0;
         fetchHistoryData(false);
       } else {
-        alert(res.message);
+        Swal.fire({ icon: 'error', title: 'Gagal Menyimpan', text: res.message });
       }
     }
   </script>
