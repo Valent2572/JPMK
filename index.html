@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Jam Plus Minus Kompen</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Menambahkan Flatpickr untuk Input Tanggal -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+  <!-- ================= SPINNER LOADING ================= -->
+  <div id="loadingOverlay" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+  </div>
+
+  <!-- ================= HALAMAN LOGIN ================= -->
+  <div id="loginPage" class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+      <h2 class="text-2xl font-bold text-center text-blue-600 mb-6">Portal Dosen</h2>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold mb-2">Username</label>
+          <input type="text" id="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-semibold mb-2">Password</label>
+          <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
+          Masuk
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= DASHBOARD UTAMA ================= -->
+  <div id="dashboardPage" class="hidden min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+      <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-xl font-bold">Sistem Pencatatan Jam</h1>
+        <div class="flex items-center gap-4">
+          <span id="userGreeting" class="font-medium">Halo, Dosen</span>
+          <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm transition">Logout</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Konten Utama -->
+    <main class="container mx-auto p-4 flex-grow flex flex-col md:flex-row gap-6 mt-4">
+      
+      <!-- Kolom Kiri: Pencarian & Riwayat -->
+      <div class="w-full md:w-2/3 bg-white p-6 rounded-xl shadow-md flex flex-col">
+        <h2 class="text-lg font-bold mb-4 border-b pb-2">Cari Riwayat Mahasiswa</h2>
+        
+        <form onsubmit="handleSearch(event)" class="flex gap-2 mb-6">
+          <input type="text" id="searchNim" placeholder="Masukkan NIM Mahasiswa..." class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium">Cari</button>
+        </form>
+
+        <div class="overflow-x-auto flex-grow">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-100 border-b">
+                <th class="p-3 text-sm font-semibold text-gray-600">Waktu Input</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">Kategori</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">Instruktur</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">Nama Mhs</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">Jam</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">Tgl Kejadian</th>
+                <th class="p-3 text-sm font-semibold text-gray-600">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="text-sm">
+              <tr><td colspan="7" class="text-center p-4 text-gray-400">Silakan cari NIM untuk melihat data.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Tombol Load More -->
+        <div class="mt-4 text-center">
+          <button id="loadMoreBtn" onclick="loadMoreData()" class="hidden bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-medium">
+            Muat Lebih Banyak
+          </button>
+        </div>
+      </div>
+
+      <!-- Kolom Kanan: Form Input Data -->
+      <div class="w-full md:w-1/3 bg-white p-6 rounded-xl shadow-md h-fit">
+        <h2 class="text-lg font-bold mb-4 border-b pb-2">Tambah Catatan Baru</h2>
+        <form id="addDataForm" onsubmit="handleAddData(event)">
+          
+          <div class="mb-3">
+            <label class="block text-xs font-semibold text-gray-600">NIM Terkunci</label>
+            <input type="text" id="inputNim" class="w-full px-3 py-2 border rounded bg-gray-100 cursor-not-allowed text-sm" readonly placeholder="Cari NIM terlebih dahulu">
+          </div>
+
+          <div class="mb-3">
+            <label class="block text-xs font-semibold text-gray-600">Nama Instruktur</label>
+            <input type="text" id="inputInstruktur" class="w-full px-3 py-2 border rounded bg-gray-100 cursor-not-allowed text-sm" readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="block text-xs font-semibold text-gray-600">Kategori</label>
+            <select id="inputKategori" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required>
+              <option value="" disabled selected>-- Pilih Kategori --</option>
+              <option value="Plus">Plus</option>
+              <option value="Minus">Minus</option>
+              <option value="Kompen">Kompen</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="block text-xs font-semibold text-gray-600">Nama Mahasiswa</label>
+            <input type="text" id="inputNamaMahasiswa" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required>
+          </div>
+
+          <div class="flex gap-3 mb-3">
+            <div class="w-1/2">
+              <label class="block text-xs font-semibold text-gray-600">Section</label>
+              <input type="text" id="inputSection" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <div class="w-1/2">
+              <label class="block text-xs font-semibold text-gray-600">Jumlah Jam</label>
+              <input type="number" id="inputJam" min="0.5" step="0.5" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="block text-xs font-semibold text-gray-600">Tanggal & Waktu Kejadian</label>
+            <input type="text" id="inputTanggalKejadian" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500 bg-white" placeholder="Pilih Tanggal & Waktu" required>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-gray-600">Keterangan</label>
+            <textarea id="inputKeterangan" rows="3" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required></textarea>
+          </div>
+
+          <button type="submit" id="btnSubmitData" class="w-full bg-green-600 text-white font-bold py-2 rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Simpan Data
+          </button>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // URL WEB APP ANDA
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwi6s54z4ydpy2SLwi9Y4OiF_sqUXleRNLb0RJeDdGjU7K5RQJORjyEUQyun9Wj-C0/exec';
+
+    // === FUNGSI CALL API ===
+    async function callGasApi(action, payload) {
+      const requestBody = { action: action, ...payload };
+      try {
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          // Harus text/plain untuk menghindari CORS Preflight dari browser
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8', 
+          },
+          body: JSON.stringify(requestBody)
+        });
+        return await response.json();
+      } catch (error) {
+        return { success: false, message: error.message };
+      }
+    }
+
+    // === STATE APLIKASI ===
+    let currentUser = null;
+    let currentNim = null;
+    let historyData = [];
+    let currentOffset = 0;
+    const limitPerPage = 10;
+
+    // === INISIALISASI ===
+    document.addEventListener('DOMContentLoaded', () => {
+      flatpickr("#inputTanggalKejadian", {
+        enableTime: true,
+        dateFormat: "d/m/Y H:i",
+        time_24hr: true
+      });
+
+      const storedUser = localStorage.getItem('nama_dosen');
+      if (storedUser) {
+        currentUser = storedUser;
+        showDashboard();
+      }
+    });
+
+    function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
+    function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+    // === AUTENTIKASI ===
+    async function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      
+      showLoading();
+      const res = await callGasApi('login', { username: user, password: pass });
+      hideLoading();
+
+      if (res.success) {
+        currentUser = res.namaDosen;
+        localStorage.setItem('nama_dosen', currentUser);
+        showDashboard();
+      } else {
+        alert(res.message);
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('nama_dosen');
+      currentUser = null;
+      document.getElementById('dashboardPage').classList.add('hidden');
+      document.getElementById('loginPage').classList.remove('hidden');
+      document.getElementById('loginForm').reset();
+    }
+
+    function showDashboard() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('dashboardPage').classList.remove('hidden');
+      document.getElementById('userGreeting').innerText = 'Halo, ' + currentUser;
+      document.getElementById('inputInstruktur').value = currentUser;
+    }
+
+    // === PENCARIAN & RIWAYAT ===
+    function handleSearch(e) {
+      if(e) e.preventDefault();
+      const nim = document.getElementById('searchNim').value.trim();
+      if (!nim) return alert("NIM tidak boleh kosong!");
+
+      currentNim = nim;
+      currentOffset = 0;
+      historyData = [];
+      document.getElementById('inputNim').value = nim; 
+      document.getElementById('btnSubmitData').disabled = false; 
+      
+      fetchHistoryData();
+    }
+
+    function loadMoreData() {
+      currentOffset += limitPerPage;
+      fetchHistoryData(true);
+    }
+
+    async function fetchHistoryData(isLoadMore = false) {
+      showLoading();
+      const res = await callGasApi('searchData', { nim: currentNim, offset: currentOffset, limit: limitPerPage });
+      hideLoading();
+
+      if (res.success) {
+        if (!isLoadMore) historyData = [];
+        historyData = historyData.concat(res.data);
+        renderHistoryTable(res.data, isLoadMore);
+        
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        if (res.hasMore) {
+          loadMoreBtn.classList.remove('hidden');
+        } else {
+          loadMoreBtn.classList.add('hidden');
+        }
+
+        if (historyData.length === 0) {
+          document.getElementById('historyTableBody').innerHTML = 
+            `<tr><td colspan="7" class="text-center p-4 text-gray-500">Belum ada riwayat untuk NIM ${currentNim}</td></tr>`;
+        }
+      } else {
+        alert(res.message);
+      }
+    }
+
+    function renderHistoryTable(data, isLoadMore) {
+      const tbody = document.getElementById('historyTableBody');
+      if (!isLoadMore) tbody.innerHTML = ''; 
+
+      data.forEach(row => {
+        let labelColor = 'bg-gray-200 text-gray-800';
+        if(row.kategori === 'Plus') labelColor = 'bg-green-100 text-green-800 border border-green-300';
+        if(row.kategori === 'Minus') labelColor = 'bg-red-100 text-red-800 border border-red-300';
+        if(row.kategori === 'Kompen') labelColor = 'bg-yellow-100 text-yellow-800 border border-yellow-300';
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b hover:bg-gray-50";
+        tr.innerHTML = `
+          <td class="p-3 text-xs whitespace-nowrap">${row.timestampStr}</td>
+          <td class="p-3 text-xs"><span class="px-2 py-1 rounded font-bold ${labelColor}">${row.kategori}</span></td>
+          <td class="p-3 text-xs">${row.namaInstruktur}</td>
+          <td class="p-3 text-xs">${row.namaMahasiswa}</td>
+          <td class="p-3 text-xs font-bold text-center">${row.jumlahJam}</td>
+          <td class="p-3 text-xs whitespace-nowrap">${row.tanggalKejadian}</td>
+          <td class="p-3 text-xs">${row.keterangan}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // === INPUT DATA BARU ===
+    async function handleAddData(e) {
+      e.preventDefault();
+      
+      const payload = {
+        nim: currentNim,
+        namaInstruktur: currentUser,
+        kategori: document.getElementById('inputKategori').value,
+        namaMahasiswa: document.getElementById('inputNamaMahasiswa').value.trim(),
+        section: document.getElementById('inputSection').value.trim(),
+        jumlahJam: document.getElementById('inputJam').value,
+        tanggalKejadian: document.getElementById('inputTanggalKejadian').value,
+        keterangan: document.getElementById('inputKeterangan').value.trim()
+      };
+
+      if(!payload.kategori || !payload.tanggalKejadian) {
+        return alert("Harap lengkapi semua field yang wajib!");
+      }
+
+      showLoading();
+      const res = await callGasApi('addData', { data: payload });
+      hideLoading();
+
+      if (res.success) {
+        alert('Data berhasil ditambahkan!');
+        document.getElementById('inputKategori').value = "";
+        document.getElementById('inputJam').value = "";
+        document.getElementById('inputTanggalKejadian').value = "";
+        document.getElementById('inputKeterangan').value = "";
+        
+        currentOffset = 0;
+        fetchHistoryData(false);
+      } else {
+        alert(res.message);
+      }
+    }
+  </script>
+</body>
+</html>
