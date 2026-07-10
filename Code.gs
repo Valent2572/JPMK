@@ -2,7 +2,7 @@
  * Fungsi utama untuk melayani halaman HTML (opsional jika dijalankan di dalam GAS)
  */
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
+  return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('Sistem Jam Plus Minus Kompen')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
@@ -36,9 +36,6 @@ function doPost(e) {
 
 /**
  * Fungsi untuk proses login
- * @param {string} username 
- * @param {string} password 
- * @returns {object} status dan nama dosen jika berhasil
  */
 function login(username, password) {
   try {
@@ -63,6 +60,52 @@ function login(username, password) {
 }
 
 /**
+ * Fungsi pembantu untuk mencari nama mahasiswa berdasar tahun angkatan dari NIM
+ */
+function getStudentName(nim) {
+  try {
+    const nimStr = nim.toString().trim();
+    const yearMatch = nimStr.match(/^(\d{4})/);
+    let targetTk = 1; // Default Tk 1
+    
+    if (yearMatch) {
+      const year = parseInt(yearMatch[1], 10);
+      // Memori algoritma tebakan level tingkat:
+      if (year >= 2025) targetTk = 1;
+      else if (year === 2024) targetTk = 2;
+      else if (year === 2023) targetTk = 3;
+      else if (year <= 2022) targetTk = 4;
+    }
+    
+    // Urutan pencarian: mulai dari targetTk, lalu naik ke tingkat berikutnya (jika ga valid, cek ke atasnya)
+    let sheetsToSearch = [];
+    for (let i = 0; i < 4; i++) {
+      let tk = targetTk + i;
+      if (tk > 4) tk -= 4; // Wrap around (misal target 4, lalu ngecek 1, 2, 3)
+      sheetsToSearch.push(`Data_Mahasiswa Tk.${tk}`);
+    }
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    for (let i = 0; i < sheetsToSearch.length; i++) {
+      const sheetName = sheetsToSearch[i];
+      const sheet = ss.getSheetByName(sheetName);
+      if (!sheet) continue;
+      
+      const data = sheet.getDataRange().getValues();
+      // Kolom A (0): No Coin, Kolom B (1): Nama Lengkap, Kolom C (2): Nim
+      for (let r = 1; r < data.length; r++) {
+        if (data[r][2] && data[r][2].toString().trim() === nimStr) {
+          return data[r][1].toString().trim(); // Return Nama Lengkap
+        }
+      }
+    }
+    return ""; // Tidak ditemukan
+  } catch (error) {
+    return ""; // Abaikan error untuk silent fallback
+  }
+}
+
+/**
  * Fungsi untuk mencari data riwayat mahasiswa berdasarkan NIM
  */
 function searchData(nim, offset = 0, limit = 10) {
@@ -70,6 +113,9 @@ function searchData(nim, offset = 0, limit = 10) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheets = ['DATABASE Plus', 'DATABASE Minus', 'DATABASE Kompen'];
     let results = [];
+    
+    // Cari nama mahasiswa otomatis dari data Sheet Master
+    const studentName = getStudentName(nim);
     
     sheets.forEach(sheetName => {
       const sheet = ss.getSheetByName(sheetName);
@@ -79,7 +125,7 @@ function searchData(nim, offset = 0, limit = 10) {
       const kategori = sheetName.replace('DATABASE ', '');
       
       for (let i = 1; i < data.length; i++) {
-        if (data[i][3].toString() === nim.toString()) {
+        if (data[i][3].toString().trim() === nim.toString().trim()) {
           results.push({
             kategori: kategori,
             timestamp: new Date(data[i][0]).getTime(), 
@@ -101,7 +147,7 @@ function searchData(nim, offset = 0, limit = 10) {
     const paginated = results.slice(offset, offset + limit);
     const hasMore = (offset + limit) < results.length;
     
-    return { success: true, data: paginated, hasMore: hasMore };
+    return { success: true, data: paginated, hasMore: hasMore, studentName: studentName };
   } catch (error) {
     return { success: false, message: 'Terjadi kesalahan sistem: ' + error.toString() };
   }

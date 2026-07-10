@@ -255,9 +255,18 @@
       hideLoading();
 
       if (res.success) {
+        
+        // Auto-fill nama mahasiswa jika ditemukan dari master data
+        if (res.studentName) {
+          document.getElementById('inputNamaMahasiswa').value = res.studentName;
+        } else if (!isLoadMore) {
+          document.getElementById('inputNamaMahasiswa').value = "";
+        }
+
         if (!isLoadMore) historyData = [];
         historyData = historyData.concat(res.data);
         renderHistoryTable(res.data, isLoadMore);
+
         
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         if (res.hasMore) {
