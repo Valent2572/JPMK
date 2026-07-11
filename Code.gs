@@ -19,7 +19,7 @@ function doPost(e) {
     if (action === 'login') {
       result = login(payload.username, payload.password);
     } else if (action === 'searchData') {
-      result = searchData(payload.nim, payload.offset, payload.limit);
+      result = searchData(payload.nim, payload.kategori, payload.offset, payload.limit);
     } else if (action === 'addData') {
       result = addData(payload.data);
     } else {
@@ -109,26 +109,24 @@ function getStudentName(nim) {
 }
 
 /**
- * Fungsi untuk mencari data riwayat mahasiswa berdasarkan NIM
+ * Fungsi untuk mencari data riwayat mahasiswa berdasarkan NIM pada kategori spesifik
  */
-function searchData(nim, offset = 0, limit = 10) {
+function searchData(nim, kategori, offset = 0, limit = 10) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheets = ['DATABASE Plus', 'DATABASE Minus', 'DATABASE Kompen'];
     let results = [];
     
     // Cari nama mahasiswa otomatis dari data Sheet Master
     const studentName = getStudentName(nim);
     
-    sheets.forEach(sheetName => {
-      const sheet = ss.getSheetByName(sheetName);
-      if (!sheet) return;
-      
+    const sheetName = 'DATABASE ' + kategori;
+    const sheet = ss.getSheetByName(sheetName);
+    
+    if (sheet) {
       const data = sheet.getDataRange().getValues();
-      const kategori = sheetName.replace('DATABASE ', '');
       
       for (let i = 1; i < data.length; i++) {
-        if (data[i][3].toString().trim() === nim.toString().trim()) {
+        if (data[i][3] && data[i][3].toString().trim() === nim.toString().trim()) {
           results.push({
             kategori: kategori,
             timestamp: new Date(data[i][0]).getTime(), 
@@ -143,7 +141,7 @@ function searchData(nim, offset = 0, limit = 10) {
           });
         }
       }
-    });
+    }
     
     results.sort((a, b) => b.timestamp - a.timestamp);
     
@@ -179,8 +177,7 @@ function addData(payload) {
       payload.namaMahasiswa,
       payload.section,
       payload.tanggalKejadian,
-      payload.keterangan,
-      payload.prodi // Ditambahkan di akhir (Kolom I)
+      payload.keterangan
     ]);
     
     return { success: true, message: 'Data berhasil disimpan.' };

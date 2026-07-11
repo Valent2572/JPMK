@@ -4,197 +4,261 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem Jam Plus Minus Kompen</title>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Menambahkan Flatpickr untuk Input Tanggal -->
+  
+  <!-- Flatpickr untuk Input Tanggal -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <!-- Menambahkan SweetAlert2 untuk Popup Alert -->
+  
+  <!-- SweetAlert2 untuk Popup -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Font Modern (Inter) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    
+    /* Dynamic Animated Gradient Background */
+    .bg-animated {
+      background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    /* Glassmorphism Effect */
+    .glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    }
+    
+    /* Fade In Animation */
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { 
+      from { opacity: 0; transform: translateY(15px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body class="bg-animated text-gray-800 min-h-screen flex flex-col">
 
   <!-- ================= SPINNER LOADING ================= -->
-  <div id="loadingOverlay" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+  <div id="loadingOverlay" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="animate-spin rounded-full h-14 w-14 border-t-4 border-b-4 border-white"></div>
   </div>
 
-  <!-- ================= HALAMAN LOGIN ================= -->
-  <div id="loginPage" class="min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-      <h2 class="text-2xl font-bold text-center text-blue-600 mb-6">Portal Dosen</h2>
+  <!-- ================= NAVBAR (Global setelah login) ================= -->
+  <nav id="globalNav" class="hidden glass shadow-sm px-6 py-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-extrabold text-gray-800 tracking-tight">JPMK System</h1>
+      <div class="flex items-center gap-4">
+        <span id="userGreeting" class="font-semibold text-gray-700"></span>
+        <button onclick="handleLogout()" class="bg-red-500/90 hover:bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-sm">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <main class="flex-grow flex items-center justify-center p-4">
+
+    <!-- STEP 1: HALAMAN LOGIN -->
+    <div id="stepLogin" class="w-full max-w-md glass rounded-3xl p-10 fade-in">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Portal Dosen</h2>
+        <p class="text-gray-600 mt-2">Masuk untuk mencatat jam mahasiswa</p>
+      </div>
       <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="mb-4">
-          <label class="block text-sm font-semibold mb-2">Username</label>
-          <input type="text" id="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        <div class="mb-5">
+          <label class="block text-sm font-semibold mb-2 text-gray-700">Username</label>
+          <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" required>
         </div>
-        <div class="mb-6">
-          <label class="block text-sm font-semibold mb-2">Password</label>
-          <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        <div class="mb-8">
+          <label class="block text-sm font-semibold mb-2 text-gray-700">Password</label>
+          <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" required>
         </div>
-        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
-          Masuk
+        <button type="submit" class="w-full bg-blue-600/90 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-xl">
+          Masuk Sekarang
         </button>
       </form>
     </div>
-  </div>
 
-  <!-- ================= DASHBOARD UTAMA ================= -->
-  <div id="dashboardPage" class="hidden min-h-screen flex flex-col">
-    <!-- Navbar -->
-    <nav class="bg-blue-600 text-white p-4 shadow-md">
-      <div class="container mx-auto flex justify-between items-center">
-        <h1 class="text-xl font-bold">Sistem Pencatatan Jam</h1>
-        <div class="flex items-center gap-4">
-          <span id="userGreeting" class="font-medium">Halo, Dosen</span>
-          <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm transition">Logout</button>
+    <!-- STEP 2: INPUT NIM -->
+    <div id="stepNim" class="hidden w-full max-w-lg glass rounded-3xl p-10 fade-in text-center">
+      <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Pencarian Mahasiswa</h2>
+      <p class="text-gray-600 mb-8">Masukkan NIM mahasiswa yang dituju</p>
+      <form onsubmit="goToStepCategory(event)">
+        <div class="flex gap-2 items-center justify-center mb-8">
+          <select id="nimYear" class="px-4 py-3 border border-gray-300/50 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white/80 font-medium" required>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+          </select>
+          <span class="font-bold text-gray-700">-</span>
+          <select id="nimCode" class="px-4 py-3 border border-gray-300/50 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white/80 font-medium" required>
+            <option value="6">6</option>
+            <option value="2">2</option>
+          </select>
+          <span class="font-bold text-gray-700">-</span>
+          <input type="text" id="nimDigits" placeholder="050" maxlength="3" pattern="\d{3}" class="w-24 px-4 py-3 border border-gray-300/50 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white/80 font-medium text-center tracking-widest" required>
         </div>
-      </div>
-    </nav>
+        <button type="submit" class="w-full bg-blue-600/90 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg">Selanjutnya &rarr;</button>
+      </form>
+    </div>
 
-    <!-- Konten Utama -->
-    <main class="container mx-auto p-4 flex-grow flex flex-col md:flex-row gap-6 mt-4">
+    <!-- STEP 3: PILIH KATEGORI -->
+    <div id="stepCategory" class="hidden w-full max-w-4xl glass rounded-3xl p-10 fade-in text-center">
+      <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Pilih Kategori Pencatatan</h2>
+      <p class="text-gray-600 mb-8 font-medium">NIM Tujuan: <span id="displayNim" class="text-blue-600 font-bold bg-blue-100/50 px-2 py-1 rounded"></span></p>
       
-      <!-- Kolom Kiri: Pencarian & Riwayat -->
-      <div class="w-full md:w-2/3 bg-white p-6 rounded-xl shadow-md flex flex-col">
-        <h2 class="text-lg font-bold mb-4 border-b pb-2">Cari Riwayat Mahasiswa</h2>
-        
-        <form onsubmit="handleSearch(event)" class="mb-6">
-          <label class="block text-sm font-semibold mb-2 text-gray-700">Pilih & Masukkan NIM</label>
-          <div class="flex gap-2 items-center">
-            <select id="searchNimYear" class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-              <option value="2022">2022</option>
-            </select>
-            <span class="font-bold text-gray-500">-</span>
-            <select id="searchNimCode" class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
-              <option value="6">6 (TRMK)</option>
-              <option value="2">2 (TMK)</option>
-            </select>
-            <span class="font-bold text-gray-500">-</span>
-            <input type="text" id="searchNimDigits" placeholder="Contoh: 050" maxlength="3" pattern="\d{3}" class="flex-grow w-24 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium">Cari</button>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <button onclick="goToDashboard('Plus')" class="group relative bg-white/60 hover:bg-green-500 border border-green-200/50 p-8 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-2xl hover:-translate-y-1">
+          <div class="h-16 w-16 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-white group-hover:text-green-500 transition">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
           </div>
-        </form>
-
-        <div class="overflow-x-auto flex-grow">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-100 border-b">
-                <th class="p-3 text-sm font-semibold text-gray-600">Waktu Input</th>
-                <th class="p-3 text-sm font-semibold text-gray-600">Kategori</th>
-                <th class="p-3 text-sm font-semibold text-gray-600">Instruktur</th>
-                <th class="p-3 text-sm font-semibold text-gray-600">Nama Mhs</th>
-                <th class="p-3 text-sm font-semibold text-gray-600">Jam</th>
-                <th class="p-3 text-sm font-semibold text-gray-600">Tgl Kejadian</th>
-                <th class="p-3 text-sm font-semibold text-gray-600">Keterangan</th>
-              </tr>
-            </thead>
-            <tbody id="historyTableBody" class="text-sm">
-              <tr><td colspan="7" class="text-center p-4 text-gray-400">Silakan cari NIM untuk melihat data.</td></tr>
-            </tbody>
-          </table>
-        </div>
+          <h3 class="text-2xl font-extrabold text-gray-800 group-hover:text-white">Jam Plus</h3>
+          <p class="text-sm text-gray-500 group-hover:text-green-100 mt-2">Tambahkan catatan jam plus</p>
+        </button>
         
-        <!-- Tombol Load More -->
-        <div class="mt-4 text-center">
-          <button id="loadMoreBtn" onclick="loadMoreData()" class="hidden bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-medium">
-            Muat Lebih Banyak
-          </button>
-        </div>
+        <button onclick="goToDashboard('Minus')" class="group relative bg-white/60 hover:bg-red-500 border border-red-200/50 p-8 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-2xl hover:-translate-y-1">
+          <div class="h-16 w-16 mx-auto bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-white group-hover:text-red-500 transition">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+          </div>
+          <h3 class="text-2xl font-extrabold text-gray-800 group-hover:text-white">Jam Minus</h3>
+          <p class="text-sm text-gray-500 group-hover:text-red-100 mt-2">Tambahkan catatan jam minus</p>
+        </button>
+        
+        <button onclick="goToDashboard('Kompen')" class="group relative bg-white/60 hover:bg-yellow-500 border border-yellow-200/50 p-8 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-2xl hover:-translate-y-1">
+          <div class="h-16 w-16 mx-auto bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mb-4 group-hover:bg-white group-hover:text-yellow-500 transition">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <h3 class="text-2xl font-extrabold text-gray-800 group-hover:text-white">Kompen</h3>
+          <p class="text-sm text-gray-500 group-hover:text-yellow-100 mt-2">Tambahkan catatan kompensasi</p>
+        </button>
+      </div>
+      <button onclick="backToStep(2)" class="mt-8 text-gray-600 hover:text-gray-900 font-medium transition flex items-center justify-center mx-auto gap-2">
+        <span>&larr;</span> Ubah NIM
+      </button>
+    </div>
+
+    <!-- STEP 4: DASHBOARD (RIWAYAT & FORM) -->
+    <div id="stepDashboard" class="hidden w-full container mx-auto fade-in">
+      
+      <div class="mb-4">
+        <button onclick="backToStep(3)" class="text-sm glass px-4 py-2 rounded-xl font-semibold text-gray-700 hover:bg-white/50 transition flex items-center gap-2">
+          <span>&larr;</span> Kembali ke Kategori
+        </button>
       </div>
 
-      <!-- Kolom Kanan: Form Input Data -->
-      <div class="w-full md:w-1/3 bg-white p-6 rounded-xl shadow-md h-fit">
-        <h2 class="text-lg font-bold mb-4 border-b pb-2">Tambah Catatan Baru</h2>
-        <form id="addDataForm" onsubmit="handleAddData(event)">
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Kolom Riwayat -->
+        <div class="w-full lg:w-2/3 glass p-6 rounded-3xl flex flex-col">
+          <div class="flex justify-between items-center mb-4 border-b border-gray-300/30 pb-4">
+            <h2 class="text-xl font-extrabold text-gray-800">Riwayat <span id="labelHistoryKategori" class="text-blue-600"></span></h2>
+            <div class="text-sm font-semibold bg-gray-200/50 px-3 py-1 rounded-lg">NIM: <span id="labelHistoryNim"></span></div>
+          </div>
           
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-600">NIM Terkunci</label>
-            <input type="text" id="inputNim" class="w-full px-3 py-2 border rounded bg-gray-100 cursor-not-allowed text-sm" readonly placeholder="Cari NIM terlebih dahulu">
+          <div class="overflow-x-auto flex-grow">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-gray-300/50">
+                  <th class="p-3 text-sm font-bold text-gray-700">Waktu</th>
+                  <th class="p-3 text-sm font-bold text-gray-700">Instruktur</th>
+                  <th class="p-3 text-sm font-bold text-gray-700">Nama Mhs</th>
+                  <th class="p-3 text-sm font-bold text-gray-700">Section</th>
+                  <th class="p-3 text-sm font-bold text-gray-700">Jam</th>
+                  <th class="p-3 text-sm font-bold text-gray-700">Tgl Kejadian</th>
+                  <th class="p-3 text-sm font-bold text-gray-700">Aktivitas</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody" class="text-sm">
+                <tr><td colspan="7" class="text-center p-8 text-gray-500 font-medium">Memuat data...</td></tr>
+              </tbody>
+            </table>
           </div>
-
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-600">Nama Instruktur</label>
-            <input type="text" id="inputInstruktur" class="w-full px-3 py-2 border rounded bg-gray-100 cursor-not-allowed text-sm" readonly>
+          
+          <div class="mt-6 text-center">
+            <button id="loadMoreBtn" onclick="loadMoreData()" class="hidden bg-white/50 hover:bg-white/80 text-gray-700 px-6 py-2 rounded-xl font-bold transition shadow-sm border border-gray-200/50">
+              Tampilkan Lebih Banyak
+            </button>
           </div>
+        </div>
 
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-600">Kategori</label>
-            <select id="inputKategori" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required>
-              <option value="" disabled selected>-- Pilih Kategori --</option>
-              <option value="Plus">Plus</option>
-              <option value="Minus">Minus</option>
-              <option value="Kompen">Kompen</option>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-600">Nama Mahasiswa</label>
-            <input type="text" id="inputNamaMahasiswa" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-600">Program Studi (Prodi)</label>
-            <input type="text" id="inputProdi" class="w-full px-3 py-2 border rounded bg-gray-100 cursor-not-allowed text-sm" readonly>
-          </div>
-
-          <div class="flex gap-3 mb-3">
-            <div class="w-1/2">
-              <label class="block text-xs font-semibold text-gray-600">Section</label>
-              <input type="text" id="inputSection" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required>
+        <!-- Kolom Form Input -->
+        <div class="w-full lg:w-1/3 glass p-8 rounded-3xl h-fit">
+          <h2 class="text-2xl font-extrabold text-gray-800 mb-6 border-b border-gray-300/30 pb-4">Tambah Catatan</h2>
+          <form id="addDataForm" onsubmit="handleAddData(event)">
+            
+            <!-- Headline (Kategori & Instruktur Terkunci) -->
+            <div class="flex gap-3 mb-4">
+              <div class="w-1/2">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Kategori</label>
+                <input type="text" id="inputKategori" class="w-full px-4 py-2 rounded-xl bg-gray-200/50 text-gray-700 font-bold outline-none" readonly>
+              </div>
+              <div class="w-1/2">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Instruktur</label>
+                <input type="text" id="inputInstruktur" class="w-full px-4 py-2 rounded-xl bg-gray-200/50 text-gray-700 font-bold outline-none" readonly>
+              </div>
             </div>
-            <div class="w-1/2">
-              <label class="block text-xs font-semibold text-gray-600">Jumlah Jam</label>
-              <input type="number" id="inputJam" min="0.5" step="0.5" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required>
+
+            <!-- Nama Mahasiswa -->
+            <div class="mb-4">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Nama Mahasiswa</label>
+              <input type="text" id="inputNamaMahasiswa" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required>
             </div>
-          </div>
 
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-600">Tanggal & Waktu Kejadian</label>
-            <input type="text" id="inputTanggalKejadian" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500 bg-white" placeholder="Pilih Tanggal & Waktu" required>
-          </div>
+            <!-- Section -->
+            <div class="mb-4">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Section (Jadwal Kuliah)</label>
+              <input type="text" id="inputSection" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required>
+            </div>
 
-          <div class="mb-4">
-            <label class="block text-xs font-semibold text-gray-600">Keterangan</label>
-            <textarea id="inputKeterangan" rows="3" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-blue-500" required></textarea>
-          </div>
+            <!-- Jumlah Jam -->
+            <div class="mb-4">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Jumlah Jam (Angka)</label>
+              <input type="number" id="inputJam" min="0.5" step="0.5" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required>
+            </div>
 
-          <button type="submit" id="btnSubmitData" class="w-full bg-green-600 text-white font-bold py-2 rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            Simpan Data
-          </button>
-        </form>
+            <!-- Tanggal Kejadian -->
+            <div class="mb-4">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tanggal & Waktu Kejadian</label>
+              <input type="text" id="inputTanggalKejadian" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" placeholder="Pilih Tanggal & Waktu" required>
+            </div>
+
+            <!-- Aktivitas / Keterangan -->
+            <div class="mb-6">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Aktivitas / Keterangan</label>
+              <textarea id="inputKeterangan" rows="3" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required></textarea>
+            </div>
+
+            <button type="submit" id="btnSubmitData" class="w-full bg-blue-600/90 text-white font-extrabold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30">
+              Simpan Data
+            </button>
+          </form>
+        </div>
       </div>
+    </div>
 
-    </main>
-  </div>
+  </main>
 
   <script>
     // URL WEB APP ANDA
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwi6s54z4ydpy2SLwi9Y4OiF_sqUXleRNLb0RJeDdGjU7K5RQJORjyEUQyun9Wj-C0/exec';
 
-    // === FUNGSI CALL API ===
-    async function callGasApi(action, payload) {
-      const requestBody = { action: action, ...payload };
-      try {
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          // Harus text/plain untuk menghindari CORS Preflight dari browser
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8', 
-          },
-          body: JSON.stringify(requestBody)
-        });
-        return await response.json();
-      } catch (error) {
-        return { success: false, message: error.message };
-      }
-    }
-
     // === STATE APLIKASI ===
     let currentUser = null;
     let currentNim = null;
+    let currentKategori = null;
     let historyData = [];
     let currentOffset = 0;
     const limitPerPage = 10;
@@ -210,12 +274,60 @@
       const storedUser = localStorage.getItem('nama_dosen');
       if (storedUser) {
         currentUser = storedUser;
-        showDashboard();
+        showStep(2); // Langsung ke form NIM
+      } else {
+        showStep(1); // Login
       }
     });
 
+    // === UI UTILS ===
     function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
     function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+    function hideAllSteps() {
+      document.getElementById('stepLogin').classList.add('hidden');
+      document.getElementById('stepNim').classList.add('hidden');
+      document.getElementById('stepCategory').classList.add('hidden');
+      document.getElementById('stepDashboard').classList.add('hidden');
+    }
+
+    function showStep(stepNumber) {
+      hideAllSteps();
+      if (stepNumber === 1) {
+        document.getElementById('globalNav').classList.add('hidden');
+        document.getElementById('stepLogin').classList.remove('hidden');
+      } else {
+        document.getElementById('globalNav').classList.remove('hidden');
+        document.getElementById('userGreeting').innerText = 'Halo, ' + currentUser;
+        
+        if (stepNumber === 2) {
+          document.getElementById('stepNim').classList.remove('hidden');
+        } else if (stepNumber === 3) {
+          document.getElementById('stepCategory').classList.remove('hidden');
+        } else if (stepNumber === 4) {
+          document.getElementById('stepDashboard').classList.remove('hidden');
+        }
+      }
+    }
+
+    function backToStep(step) {
+      showStep(step);
+    }
+
+    // === CALL API ===
+    async function callGasApi(action, payload) {
+      const requestBody = { action: action, ...payload };
+      try {
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(requestBody)
+        });
+        return await response.json();
+      } catch (error) {
+        return { success: false, message: error.message };
+      }
+    }
 
     // === AUTENTIKASI ===
     async function handleLogin(e) {
@@ -230,7 +342,7 @@
       if (res.success) {
         currentUser = res.namaDosen;
         localStorage.setItem('nama_dosen', currentUser);
-        showDashboard();
+        showStep(2);
       } else {
         Swal.fire({ icon: 'error', title: 'Login Gagal', text: res.message });
       }
@@ -239,44 +351,53 @@
     function handleLogout() {
       localStorage.removeItem('nama_dosen');
       currentUser = null;
-      document.getElementById('dashboardPage').classList.add('hidden');
-      document.getElementById('loginPage').classList.remove('hidden');
+      currentNim = null;
+      currentKategori = null;
       document.getElementById('loginForm').reset();
+      showStep(1);
     }
 
-    function showDashboard() {
-      document.getElementById('loginPage').classList.add('hidden');
-      document.getElementById('dashboardPage').classList.remove('hidden');
-      document.getElementById('userGreeting').innerText = 'Halo, ' + currentUser;
-      document.getElementById('inputInstruktur').value = currentUser;
-    }
-
-    // === PENCARIAN & RIWAYAT ===
-    function handleSearch(e) {
+    // === STEP 2: INPUT NIM ===
+    function goToStepCategory(e) {
       if(e) e.preventDefault();
-      const year = document.getElementById('searchNimYear').value;
-      const code = document.getElementById('searchNimCode').value;
-      const digits = document.getElementById('searchNimDigits').value.trim();
+      const year = document.getElementById('nimYear').value;
+      const code = document.getElementById('nimCode').value;
+      const digits = document.getElementById('nimDigits').value.trim();
       
       if (digits.length !== 3) {
         return Swal.fire({ icon: 'warning', title: 'Perhatian', text: '3 digit terakhir NIM harus diisi tepat 3 angka!' });
       }
 
-      const nim = `${year}-${code}-${digits}`;
-      const sectionName = code === '6' ? 'TRMK' : 'TMK';
+      currentNim = `${year}-${code}-${digits}`;
+      document.getElementById('displayNim').innerText = currentNim;
+      showStep(3);
+    }
 
-      currentNim = nim;
+    // === STEP 3: PILIH KATEGORI -> DASHBOARD ===
+    function goToDashboard(kategori) {
+      currentKategori = kategori;
+      
+      // Setup Dashboard Form & Label
+      document.getElementById('inputKategori').value = currentKategori;
+      document.getElementById('inputInstruktur').value = currentUser;
+      document.getElementById('labelHistoryKategori').innerText = currentKategori;
+      document.getElementById('labelHistoryNim').innerText = currentNim;
+      
+      // Reset Form fields
+      document.getElementById('inputSection').value = '';
+      document.getElementById('inputJam').value = '';
+      document.getElementById('inputTanggalKejadian').value = '';
+      document.getElementById('inputKeterangan').value = '';
+
+      showStep(4);
+      
+      // Fetch Data
       currentOffset = 0;
       historyData = [];
-      
-      document.getElementById('inputNim').value = nim; 
-      document.getElementById('inputProdi').value = sectionName; // Auto-fill prodi
-      document.getElementById('inputSection').value = ''; // Kosongkan section
-      document.getElementById('btnSubmitData').disabled = false; 
-      
       fetchHistoryData();
     }
 
+    // === HISTORY DATA ===
     function loadMoreData() {
       currentOffset += limitPerPage;
       fetchHistoryData(true);
@@ -284,15 +405,14 @@
 
     async function fetchHistoryData(isLoadMore = false) {
       showLoading();
-      const res = await callGasApi('searchData', { nim: currentNim, offset: currentOffset, limit: limitPerPage });
+      const res = await callGasApi('searchData', { nim: currentNim, kategori: currentKategori, offset: currentOffset, limit: limitPerPage });
       hideLoading();
 
       if (res.success) {
-        
-        // Auto-fill nama mahasiswa jika ditemukan dari master data
+        // Auto-fill nama mahasiswa jika ditemukan
         if (res.studentName) {
           document.getElementById('inputNamaMahasiswa').value = res.studentName;
-        } else if (!isLoadMore) {
+        } else if (!isLoadMore && !document.getElementById('inputNamaMahasiswa').value) {
           document.getElementById('inputNamaMahasiswa').value = "";
         }
 
@@ -300,7 +420,6 @@
         historyData = historyData.concat(res.data);
         renderHistoryTable(res.data, isLoadMore);
 
-        
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         if (res.hasMore) {
           loadMoreBtn.classList.remove('hidden');
@@ -310,7 +429,7 @@
 
         if (historyData.length === 0) {
           document.getElementById('historyTableBody').innerHTML = 
-            `<tr><td colspan="7" class="text-center p-4 text-gray-500">Belum ada riwayat untuk NIM ${currentNim}</td></tr>`;
+            `<tr><td colspan="7" class="text-center p-8 text-gray-500 font-medium">Belum ada riwayat ${currentKategori} untuk NIM ini.</td></tr>`;
         }
       } else {
         Swal.fire({ icon: 'error', title: 'Oops...', text: res.message });
@@ -322,45 +441,35 @@
       if (!isLoadMore) tbody.innerHTML = ''; 
 
       data.forEach(row => {
-        let labelColor = 'bg-gray-200 text-gray-800';
-        if(row.kategori === 'Plus') labelColor = 'bg-green-100 text-green-800 border border-green-300';
-        if(row.kategori === 'Minus') labelColor = 'bg-red-100 text-red-800 border border-red-300';
-        if(row.kategori === 'Kompen') labelColor = 'bg-yellow-100 text-yellow-800 border border-yellow-300';
-
         const tr = document.createElement('tr');
-        tr.className = "border-b hover:bg-gray-50";
+        tr.className = "border-b border-gray-200/50 hover:bg-white/40 transition";
         tr.innerHTML = `
           <td class="p-3 text-xs whitespace-nowrap">${row.timestampStr}</td>
-          <td class="p-3 text-xs"><span class="px-2 py-1 rounded font-bold ${labelColor}">${row.kategori}</span></td>
-          <td class="p-3 text-xs">${row.namaInstruktur}</td>
-          <td class="p-3 text-xs">${row.namaMahasiswa}</td>
-          <td class="p-3 text-xs font-bold text-center">${row.jumlahJam}</td>
-          <td class="p-3 text-xs whitespace-nowrap">${row.tanggalKejadian}</td>
-          <td class="p-3 text-xs">${row.keterangan}</td>
+          <td class="p-3 text-xs font-medium">${row.namaInstruktur}</td>
+          <td class="p-3 text-xs font-medium">${row.namaMahasiswa}</td>
+          <td class="p-3 text-xs">${row.section}</td>
+          <td class="p-3 text-sm font-bold text-center text-blue-600">${row.jumlahJam}</td>
+          <td class="p-3 text-xs whitespace-nowrap text-gray-600">${row.tanggalKejadian}</td>
+          <td class="p-3 text-xs text-gray-700">${row.keterangan}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // === INPUT DATA BARU ===
+    // === ADD DATA ===
     async function handleAddData(e) {
       e.preventDefault();
       
       const payload = {
         nim: currentNim,
+        kategori: currentKategori,
         namaInstruktur: currentUser,
-        kategori: document.getElementById('inputKategori').value,
         namaMahasiswa: document.getElementById('inputNamaMahasiswa').value.trim(),
-        prodi: document.getElementById('inputProdi').value,
         section: document.getElementById('inputSection').value.trim(),
         jumlahJam: document.getElementById('inputJam').value,
         tanggalKejadian: document.getElementById('inputTanggalKejadian').value,
         keterangan: document.getElementById('inputKeterangan').value.trim()
       };
-
-      if(!payload.kategori || !payload.tanggalKejadian) {
-        return Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Harap lengkapi semua field yang wajib!' });
-      }
 
       showLoading();
       const res = await callGasApi('addData', { data: payload });
@@ -368,7 +477,9 @@
 
       if (res.success) {
         Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data berhasil ditambahkan!', timer: 2000, showConfirmButton: false });
-        document.getElementById('inputKategori').value = "";
+        // Reset only values that should be changed (keep name & section possibly?)
+        // Usually we empty section, jam, date, ket. Name stays same.
+        document.getElementById('inputSection').value = "";
         document.getElementById('inputJam').value = "";
         document.getElementById('inputTanggalKejadian').value = "";
         document.getElementById('inputKeterangan').value = "";
