@@ -21,18 +21,6 @@
   <style>
     body { font-family: 'Inter', sans-serif; }
     
-    /* Dynamic Animated Gradient Background */
-    .bg-animated {
-      background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-    }
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
     /* Glassmorphism Effect */
     .glass {
       background: rgba(255, 255, 255, 0.7);
@@ -50,7 +38,7 @@
     }
   </style>
 </head>
-<body class="bg-animated text-gray-800 min-h-screen flex flex-col">
+<body class="bg-[#F9F6EE] text-gray-800 min-h-screen flex flex-col">
 
   <!-- ================= SPINNER LOADING ================= -->
   <div id="loadingOverlay" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50">
