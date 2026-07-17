@@ -18,6 +18,8 @@ function doPost(e) {
     
     if (action === 'login') {
       result = login(payload.username, payload.password);
+    } else if (action === 'getAvailableYears') {
+      result = getAvailableYears();
     } else if (action === 'searchData') {
       result = searchData(payload.nim, payload.kategori, payload.offset, payload.limit);
     } else if (action === 'addData') {
@@ -155,7 +157,48 @@ function searchData(nim, kategori, offset = 0, limit = 10) {
 }
 
 /**
- * Fungsi untuk menyimpan data baru ke sheet yang sesuai
+ * Fungsi untuk mengambil daftar tahun angkatan secara dinamis dari sheet Master
+ */
+function getAvailableYears() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let years = [];
+    
+    const sheets = ['Data_Mahasiswa Tk.1', 'Data_Mahasiswa Tk.2', 'Data_Mahasiswa Tk.3', 'Data_Mahasiswa Tk.4'];
+    
+    sheets.forEach(sheetName => {
+      const sheet = ss.getSheetByName(sheetName);
+      if (sheet) {
+        // Ambil NIM pertama di baris ke-2 (asumsi baris 1 adalah header). Kolom C (3)
+        const nimCell = sheet.getRange(2, 3).getValue();
+        if (nimCell) {
+          const nimStr = nimCell.toString().trim();
+          const match = nimStr.match(/^(\d{4})/);
+          if (match) {
+            const year = parseInt(match[1]);
+            if (!years.includes(year)) {
+              years.push(year);
+            }
+          }
+        }
+      }
+    });
+    
+    years.sort((a, b) => b - a);
+    
+    if (years.length === 0) {
+      const currentYear = new Date().getFullYear();
+      years = [currentYear, currentYear-1, currentYear-2, currentYear-3];
+    }
+    
+    return { success: true, years: years };
+  } catch (error) {
+    return { success: false, message: 'Terjadi kesalahan sistem: ' + error.toString() };
+  }
+}
+
+/**
+ * Fungsi untuk menambahkan data baru ke dalam Sheet berdasarkan Kategori
  */
 function addData(payload) {
   try {
@@ -179,6 +222,23 @@ function addData(payload) {
       payload.tanggalKejadian,
       payload.keterangan
     ]);
+    
+    // Jika Kategori Minus dan user mengisi Jam Kompen (Double Insert)
+    if (payload.kategori === 'Minus' && payload.jumlahJamKompen) {
+      const sheetKompen = ss.getSheetByName('DATABASE Kompen');
+      if (sheetKompen) {
+        sheetKompen.appendRow([
+          timestamp,
+          payload.namaInstruktur,
+          payload.jumlahJamKompen,
+          payload.nim,
+          payload.namaMahasiswa,
+          payload.section,
+          payload.tanggalKejadian,
+          payload.keterangan
+        ]);
+      }
+    }
     
     return { success: true, message: 'Data berhasil disimpan.' };
   } catch (error) {

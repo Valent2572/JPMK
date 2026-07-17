@@ -87,10 +87,7 @@
       <form onsubmit="goToDashboard(event)">
         <div class="flex flex-wrap gap-2 items-center justify-center mb-8">
           <select id="nimYear" class="px-4 py-3 border border-gray-300/50 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white/80 font-medium" required>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
+            <option value="">Memuat...</option>
           </select>
           <span class="font-bold text-gray-700">-</span>
           <select id="nimCode" class="px-4 py-3 border border-gray-300/50 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white/80 font-medium" required>
@@ -205,16 +202,22 @@
               <input type="text" id="inputNamaMahasiswa" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required>
             </div>
 
-            <!-- Section -->
+            <!-- Aktivitas / Keterangan -->
             <div class="mb-4">
-              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Section (Jadwal Kuliah)</label>
-              <input type="text" id="inputSection" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Aktivitas / Keterangan</label>
+              <textarea id="inputKeterangan" rows="3" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required></textarea>
             </div>
 
             <!-- Jumlah Jam -->
             <div class="mb-4">
-              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Jumlah Jam (Angka)</label>
+              <label id="labelInputJam" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Jumlah Jam</label>
               <input type="number" id="inputJam" min="0.5" step="0.5" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required>
+            </div>
+
+            <!-- Tambahan Jam Kompen (Khusus Minus) -->
+            <div id="containerJamKompen" class="mb-4 hidden">
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Jam Kompen (Opsional)</label>
+              <input type="number" id="inputJamKompen" min="0.5" step="0.5" class="w-full px-4 py-3 border border-yellow-300/50 bg-yellow-50/70 rounded-xl focus:ring-2 focus:ring-yellow-500 transition font-medium text-gray-900">
             </div>
 
             <!-- Tanggal Kejadian -->
@@ -223,10 +226,10 @@
               <input type="text" id="inputTanggalKejadian" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" placeholder="Pilih Tanggal" required>
             </div>
 
-            <!-- Aktivitas / Keterangan -->
+            <!-- Section -->
             <div class="mb-6">
-              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Aktivitas / Keterangan</label>
-              <textarea id="inputKeterangan" rows="3" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required></textarea>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Section (Jadwal Kuliah)</label>
+              <input type="text" id="inputSection" class="w-full px-4 py-3 border border-gray-300/50 rounded-xl bg-white/70 focus:ring-2 focus:ring-blue-500 transition font-medium" required>
             </div>
 
             <button type="submit" id="btnSubmitData" class="w-full bg-blue-600/90 text-white font-extrabold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30">
@@ -265,7 +268,24 @@
       } else {
         showStep(1); // Login
       }
+      
+      // Load Dynamic Years
+      loadDynamicYears();
     });
+
+    async function loadDynamicYears() {
+      const res = await callGasApi('getAvailableYears', {});
+      if (res.success && res.years && res.years.length > 0) {
+        const selectYear = document.getElementById('nimYear');
+        selectYear.innerHTML = '';
+        res.years.forEach(yr => {
+          const opt = document.createElement('option');
+          opt.value = yr;
+          opt.innerText = yr;
+          selectYear.appendChild(opt);
+        });
+      }
+    }
 
     // === UI UTILS ===
     function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
@@ -370,10 +390,32 @@
       document.getElementById('labelHistoryKategori').innerText = currentKategori;
       document.getElementById('labelHistoryNim').innerText = currentNim;
       
+      // Pewarnaan input berdasarkan Kategori
+      const labelInputJam = document.getElementById('labelInputJam');
+      const inputJam = document.getElementById('inputJam');
+      const containerJamKompen = document.getElementById('containerJamKompen');
+      const inputJamKompen = document.getElementById('inputJamKompen');
+      
+      inputJam.className = "w-full px-4 py-3 border rounded-xl focus:ring-2 transition font-medium text-gray-900";
+      
+      if (currentKategori === 'Plus') {
+        labelInputJam.innerText = 'Jam Plus';
+        inputJam.classList.add('bg-green-50/70', 'border-green-300/50', 'focus:ring-green-500');
+        containerJamKompen.classList.add('hidden');
+      } else if (currentKategori === 'Minus') {
+        labelInputJam.innerText = 'Jam Minus';
+        inputJam.classList.add('bg-pink-50/70', 'border-pink-300/50', 'focus:ring-pink-500');
+        containerJamKompen.classList.remove('hidden');
+      } else if (currentKategori === 'Kompen') {
+        labelInputJam.innerText = 'Jam Kompen';
+        inputJam.classList.add('bg-yellow-50/70', 'border-yellow-300/50', 'focus:ring-yellow-500');
+        containerJamKompen.classList.add('hidden');
+      }
+      
       // Reset Form fields
       document.getElementById('inputSection').value = '';
       document.getElementById('inputJam').value = '';
-      document.getElementById('inputTanggalKejadian').value = '';
+      inputJamKompen.value = '';
       document.getElementById('inputKeterangan').value = '';
 
       showStep(4);
@@ -454,6 +496,7 @@
         namaMahasiswa: document.getElementById('inputNamaMahasiswa').value.trim(),
         section: document.getElementById('inputSection').value.trim(),
         jumlahJam: document.getElementById('inputJam').value,
+        jumlahJamKompen: document.getElementById('inputJamKompen').value,
         tanggalKejadian: document.getElementById('inputTanggalKejadian').value,
         keterangan: document.getElementById('inputKeterangan').value.trim()
       };
@@ -464,12 +507,13 @@
 
       if (res.success) {
         Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data berhasil ditambahkan!', timer: 2000, showConfirmButton: false });
-        // Reset only values that should be changed (keep name & section possibly?)
-        // Usually we empty section, jam, date, ket. Name stays same.
+        
+        // Hanya reset field yang diperlukan
         document.getElementById('inputSection').value = "";
         document.getElementById('inputJam').value = "";
-        document.getElementById('inputTanggalKejadian').value = "";
+        document.getElementById('inputJamKompen').value = "";
         document.getElementById('inputKeterangan').value = "";
+        // Note: Tanggal TIDAK DIRESET agar bisa diisi beruntun
         
         currentOffset = 0;
         fetchHistoryData(false);
