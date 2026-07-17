@@ -149,7 +149,7 @@
         <!-- Kolom Riwayat -->
         <div class="w-full lg:w-2/3 glass p-4 sm:p-6 rounded-3xl flex flex-col">
           <div class="flex justify-between items-center mb-4 border-b border-gray-300/30 pb-4">
-            <h2 class="text-xl font-extrabold text-gray-800">Riwayat <span id="labelHistoryKategori" class="text-blue-600"></span></h2>
+            <h2 class="text-xl font-extrabold text-gray-800">Riwayat <span id="labelHistoryKategori"></span></h2>
             <div class="text-sm font-semibold bg-gray-200/50 px-3 py-1 rounded-lg">NIM: <span id="labelHistoryNim"></span></div>
           </div>
           
@@ -387,8 +387,14 @@
       // Setup Dashboard Form & Label
       document.getElementById('inputKategori').value = currentKategori;
       document.getElementById('inputInstruktur').value = currentUser;
-      document.getElementById('labelHistoryKategori').innerText = currentKategori;
       document.getElementById('labelHistoryNim').innerText = currentNim;
+      
+      const labelCat = document.getElementById('labelHistoryKategori');
+      labelCat.innerText = currentKategori;
+      labelCat.className = "text-gray-900 px-2 py-0.5 rounded";
+      if (currentKategori === 'Plus') labelCat.classList.add('bg-green-200');
+      else if (currentKategori === 'Minus') labelCat.classList.add('bg-red-200');
+      else if (currentKategori === 'Kompen') labelCat.classList.add('bg-yellow-200');
       
       // Pewarnaan input berdasarkan Kategori
       const labelInputJam = document.getElementById('labelInputJam');
@@ -470,6 +476,13 @@
       if (!isLoadMore) tbody.innerHTML = ''; 
 
       data.forEach(row => {
+        let displayTgl = row.tanggalKejadian;
+        if (typeof displayTgl === 'string' && displayTgl.includes('T')) {
+          const d = new Date(displayTgl);
+          if (!isNaN(d)) {
+            displayTgl = d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+          }
+        }
         const tr = document.createElement('tr');
         tr.className = "border-b border-gray-200/50 hover:bg-white/40 transition";
         tr.innerHTML = `
@@ -478,7 +491,7 @@
           <td class="p-3 text-xs font-medium">${row.namaMahasiswa}</td>
           <td class="p-3 text-xs">${row.section}</td>
           <td class="p-3 text-sm font-bold text-center text-blue-600">${row.jumlahJam}</td>
-          <td class="p-3 text-xs whitespace-nowrap text-gray-600">${row.tanggalKejadian}</td>
+          <td class="p-3 text-xs whitespace-nowrap text-gray-600">${displayTgl}</td>
           <td class="p-3 text-xs text-gray-700">${row.keterangan}</td>
         `;
         tbody.appendChild(tr);
