@@ -124,17 +124,34 @@ function searchData(nim, kategori, offset = 0, limit = 10) {
     const sheetName = 'DATABASE ' + kategori;
     const sheet = ss.getSheetByName(sheetName);
     
+    // Ambil data Kompen tambahan jika sedang memuat kategori Minus
+    let kompenMap = {};
+    if (kategori === 'Minus') {
+      const kompenSheet = ss.getSheetByName('DATABASE Kompen');
+      if (kompenSheet) {
+        const kData = kompenSheet.getDataRange().getValues();
+        for (let j = 1; j < kData.length; j++) {
+           if (kData[j][3] && kData[j][3].toString().trim() === nim.toString().trim()) {
+              const kTime = new Date(kData[j][0]).getTime();
+              kompenMap[kTime] = kData[j][2];
+           }
+        }
+      }
+    }
+    
     if (sheet) {
       const data = sheet.getDataRange().getValues();
       
       for (let i = 1; i < data.length; i++) {
         if (data[i][3] && data[i][3].toString().trim() === nim.toString().trim()) {
+          const tTime = new Date(data[i][0]).getTime();
           results.push({
             kategori: kategori,
-            timestamp: new Date(data[i][0]).getTime(), 
+            timestamp: tTime, 
             timestampStr: Utilities.formatDate(new Date(data[i][0]), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss"),
             namaInstruktur: data[i][1],
             jumlahJam: data[i][2],
+            jumlahJamKompen: kompenMap[tTime] || null,
             nim: data[i][3],
             namaMahasiswa: data[i][4],
             section: data[i][5],

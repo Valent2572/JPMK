@@ -483,6 +483,10 @@
             displayTgl = d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
           }
         }
+        const kompenBadge = row.jumlahJamKompen 
+           ? `<br><span class="text-[10px] text-yellow-700 bg-yellow-100 px-1.5 py-0.5 rounded-md shadow-sm mt-1 inline-block border border-yellow-200">+ Kmpn: ${row.jumlahJamKompen}</span>`
+           : '';
+
         const tr = document.createElement('tr');
         tr.className = "border-b border-gray-200/50 hover:bg-white/40 transition";
         tr.innerHTML = `
@@ -490,7 +494,10 @@
           <td class="p-3 text-xs font-medium">${row.namaInstruktur}</td>
           <td class="p-3 text-xs font-medium">${row.namaMahasiswa}</td>
           <td class="p-3 text-xs">${row.section}</td>
-          <td class="p-3 text-sm font-bold text-center text-blue-600">${row.jumlahJam}</td>
+          <td class="p-3 text-sm font-bold text-center text-blue-600">
+            ${row.jumlahJam}
+            ${kompenBadge}
+          </td>
           <td class="p-3 text-xs whitespace-nowrap text-gray-600">${displayTgl}</td>
           <td class="p-3 text-xs text-gray-700">${row.keterangan}</td>
         `;
