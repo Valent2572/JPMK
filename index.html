@@ -401,20 +401,25 @@
       const inputJam = document.getElementById('inputJam');
       const containerJamKompen = document.getElementById('containerJamKompen');
       const inputJamKompen = document.getElementById('inputJamKompen');
+      const inputKategori = document.getElementById('inputKategori');
       
       inputJam.className = "w-full px-4 py-3 border rounded-xl focus:ring-2 transition font-medium text-gray-900";
+      inputKategori.className = "w-full px-4 py-2 rounded-xl text-gray-900 font-bold outline-none";
       
       if (currentKategori === 'Plus') {
         labelInputJam.innerText = 'Jam Plus';
         inputJam.classList.add('bg-green-50/70', 'border-green-300/50', 'focus:ring-green-500');
+        inputKategori.classList.add('bg-green-200');
         containerJamKompen.classList.add('hidden');
       } else if (currentKategori === 'Minus') {
         labelInputJam.innerText = 'Jam Minus';
         inputJam.classList.add('bg-pink-50/70', 'border-pink-300/50', 'focus:ring-pink-500');
+        inputKategori.classList.add('bg-red-200');
         containerJamKompen.classList.remove('hidden');
       } else if (currentKategori === 'Kompen') {
         labelInputJam.innerText = 'Jam Kompen';
         inputJam.classList.add('bg-yellow-50/70', 'border-yellow-300/50', 'focus:ring-yellow-500');
+        inputKategori.classList.add('bg-yellow-200');
         containerJamKompen.classList.add('hidden');
       }
       
