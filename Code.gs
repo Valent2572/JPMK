@@ -131,9 +131,10 @@ function searchData(nim, kategori, offset = 0, limit = 10) {
       if (kompenSheet) {
         const kData = kompenSheet.getDataRange().getValues();
         for (let j = 1; j < kData.length; j++) {
-           if (kData[j][3] && kData[j][3].toString().trim() === nim.toString().trim()) {
+           // NIM di kData[j][2], Jam Kompen di kData[j][8]
+           if (kData[j][2] && kData[j][2].toString().trim() === nim.toString().trim()) {
               const kTime = new Date(kData[j][0]).getTime();
-              kompenMap[kTime] = kData[j][2];
+              kompenMap[kTime] = kData[j][8];
            }
         }
       }
@@ -143,20 +144,22 @@ function searchData(nim, kategori, offset = 0, limit = 10) {
       const data = sheet.getDataRange().getValues();
       
       for (let i = 1; i < data.length; i++) {
-        if (data[i][3] && data[i][3].toString().trim() === nim.toString().trim()) {
+        // NIM di data[i][2]
+        if (data[i][2] && data[i][2].toString().trim() === nim.toString().trim()) {
           const tTime = new Date(data[i][0]).getTime();
           results.push({
             kategori: kategori,
             timestamp: tTime, 
             timestampStr: Utilities.formatDate(new Date(data[i][0]), Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss"),
             namaInstruktur: data[i][1],
-            jumlahJam: data[i][2],
-            jumlahJamKompen: kompenMap[tTime] || null,
-            nim: data[i][3],
-            namaMahasiswa: data[i][4],
-            section: data[i][5],
+            nim: data[i][2],
+            namaMahasiswa: data[i][3],
+            section: data[i][4],
+            statusJam: data[i][5],
             tanggalKejadian: data[i][6],
-            keterangan: data[i][7]
+            keterangan: data[i][7],
+            jumlahJam: data[i][8],
+            jumlahJamKompen: kompenMap[tTime] || null
           });
         }
       }
@@ -232,12 +235,13 @@ function addData(payload) {
     sheet.appendRow([
       timestamp,
       payload.namaInstruktur,
-      payload.jumlahJam,
       payload.nim,
       payload.namaMahasiswa,
       payload.section,
+      payload.kategori,         // Kolom F: Status jam
       payload.tanggalKejadian,
-      payload.keterangan
+      payload.keterangan,
+      payload.jumlahJam
     ]);
     
     // Jika Kategori Minus dan user mengisi Jam Kompen (Double Insert)
@@ -247,12 +251,13 @@ function addData(payload) {
         sheetKompen.appendRow([
           timestamp,
           payload.namaInstruktur,
-          payload.jumlahJamKompen,
           payload.nim,
           payload.namaMahasiswa,
           payload.section,
+          'Kompen',                 // Kolom F: Status jam untuk kompen
           payload.tanggalKejadian,
-          payload.keterangan
+          payload.keterangan,
+          payload.jumlahJamKompen
         ]);
       }
     }
